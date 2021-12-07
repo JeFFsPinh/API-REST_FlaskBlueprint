@@ -15,17 +15,45 @@ def adicionar_dono():
     if not cadastro_dono.get("cpf"): # proibição do cadastro sem o cpf
         return jsonify({"error": "O cpf é obrigatório"}), 422
 
-    usuario = Dono(cadastro_dono.get("nome"), cadastro_dono.get("cpf"))
-
     for i in repositorio.listar_donos(): # validação e proibição do cadastro de um usuário que já foi cadastrado anteriormente
-        if usuario.nome == i.get("nome"):
+        if cadastro_dono.get("nome") == i.get("nome"):
             return jsonify({"error": "O usuário já existe"}), 422
 
+    usuario = Dono(repositorio.gerar_id_dono(), cadastro_dono.get("nome"), cadastro_dono.get("cpf"))
     repositorio.adicionar_dono(usuario) # inserção dos dados
     return jsonify("Cadastro feito!"), 201
 
-def listar_donos():    
-    return jsonify({"cadastro_dono": repositorio.listar_donos()}), 200
 
-def info_dono(nome: str):
-    return jsonify(repositorio.info_dono(nome)), 200
+def atualizar_dono(Id: int):
+    cadastro_dono = request.json # criação de variável para manipulação do request.json
+
+    for item, valor in cadastro_dono.items():  # tratamento nos dados que estão no request.json
+        cadastro_dono[item] = valor.lower().strip()
+
+    if not cadastro_dono.get("nome"): # proibição do cadastro sem o nome
+        return jsonify({"error": "O nome é obrigatório"}), 422
+
+    if not cadastro_dono.get("cpf"): # proibição do cadastro sem o cpf
+        return jsonify({"error": "O cpf é obrigatório"}), 422
+
+    for i in repositorio.listar_donos(): # validação e proibição do cadastro de um usuário que já foi cadastrado anteriormente
+        if cadastro_dono.get("nome") == i.get("nome"):
+            return jsonify({"error": "O usuário já existe"}), 422
+
+    usuario = Dono(Id, cadastro_dono.get("nome"), cadastro_dono.get("cpf"))
+    repositorio.atualizar_dono(usuario) # inserção dos dados
+    return jsonify("Cadastro atualizado!"), 201
+
+
+def listar_donos():    
+    return jsonify({"cadastros": repositorio.listar_donos()}), 200
+
+def info_dono_nome(nome: str):
+    return jsonify(repositorio.info_dono_nome(nome)), 200
+
+def info_dono_Id(Id: int):
+    return jsonify(repositorio.info_dono_Id(Id)), 200
+
+def deletar_dono(Id: int):
+    repositorio.deletar_dono(Id)
+    return jsonify(), 204
